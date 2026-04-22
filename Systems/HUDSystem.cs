@@ -1,0 +1,157 @@
+// ============================================================
+// HUDSystem.cs — Bailiff & Co
+// Affichage UNIQUEMENT. S'abonne aux events, met à jour l'UI.
+// Aucune logique de jeu. Toutes les refs UI sont ici.
+// ============================================================
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class HUDSystem : MonoBehaviour
+{
+    [Header("Quota")]
+    [SerializeField] private Slider              _barreQuota;
+    [SerializeField] private TextMeshProUGUI     _texteQuota;
+
+    [Header("Paranoïa")]
+    [SerializeField] private Image               _iconeParanoia;
+    [SerializeField] private Sprite[]            _spritesParanoiaPaliers; // 6 sprites (paliers 0–5)
+    [SerializeField] private TextMeshProUGUI     _texteParanoia;
+
+    [Header("Interaction")]
+    [SerializeField] private TextMeshProUGUI     _texteInteraction;
+    [SerializeField] private GameObject          _panneauInteraction;
+
+    [Header("Urgence")]
+    [SerializeField] private GameObject          _panneauUrgence;
+    [SerializeField] private TextMeshProUGUI     _texteTimer;
+    [SerializeField] private Image               _cadreRouge;
+
+    [Header("Notifications")]
+    [SerializeField] private TextMeshProUGUI     _notificationChargement;
+
+    private PlayerInteractor _interactor;
+    private float            _timerUrgence  = 0f;
+    private bool             _urgenceActive = false;
+
+    // ================================================================
+    // LIFECYCLE
+    // ================================================================
+
+    private void Start()
+    {
+        _interactor = FindObjectOfType<PlayerInteractor>();
+        if (_panneauUrgence) _panneauUrgence.SetActive(false);
+    }
+
+    private void OnEnable()
+    {
+        EventBus<OnQuotaChanged>.Subscribe(OnQuotaChanged);
+        EventBus<OnParanoiaChanged>.Subscribe(OnParanoiaChanged);
+        EventBus<OnObjetCharge>.Subscribe(OnObjetCharge);
+        EventBus<OnTimerUrgenceDéclenche>.Subscribe(OnTimerUrgence);
+        EventBus<OnPerroquetParle>.Subscribe(OnPerroquetParle);
+    }
+
+    private void OnDisable()
+    {
+        EventBus<OnQuotaChanged>.Unsubscribe(OnQuotaChanged);
+        EventBus<OnParanoiaChanged>.Unsubscribe(OnParanoiaChanged);
+        EventBus<OnObjetCharge>.Unsubscribe(OnObjetCharge);
+        EventBus<OnTimerUrgenceDéclenche>.Unsubscribe(OnTimerUrgence);
+        EventBus<OnPerroquetParle>.Unsubscribe(OnPerroquetParle);
+    }
+
+    private void Update()
+    {
+        // Label d'interaction contextuel
+        if (_interactor != null && _panneauInteraction != null)
+        {
+            string label = _interactor.GetLabelCourant();
+            bool actif   = !string.IsNullOrEmpty(label);
+            _panneauInteraction.SetActive(actif);
+            if (actif && _texteInteraction) _texteInteraction.text = label;
+        }
+
+        // Timer d'urgence
+        if (_urgenceActive)
+        {
+            _timerUrgence -= Time.deltaTime;
+            if (_texteTimer) _texteTimer.text = FormatTimer(_timerUrgence);
+            if (_timerUrgence <= 0)
+            {
+                _urgenceActive = false;
+                if (_panneauUrgence) _panneauUrgence.SetActive(false);
+            }
+        }
+    }
+
+    // ================================================================
+    // HANDLERS
+    // ================================================================
+
+    private void OnQuotaChanged(OnQuotaChanged e)
+    {
+        if (_barreQuota)
+            _barreQuota.value = e.PourcentageAtteint;
+        if (_texteQuota)
+            _texteQuota.text = $"{e.ValeurTotale:N0} € / {e.ValeurCible:N0} €";
+    }
+
+    private void OnParanoiaChanged(OnParanoiaChanged e)
+    {
+        if (_iconeParanoia && _spritesParanoiaPaliers != null
+            && e.NouveauPalier < _spritesParanoiaPaliers.Length)
+        {
+            _iconeParanoia.sprite = _spritesParanoiaPaliers[e.NouveauPalier];
+        }
+        if (_texteParanoia)
+            _texteParanoia.text = ParanoiaSystem.NomPalier(e.NouveauPalier);
+    }
+
+    private void OnObjetCharge(OnObjetCharge e)
+    {
+        if (_notificationChargement)
+        {
+            _notificationChargement.text = $"+{e.Valeur:N0} €";
+            CancelInvoke(nameof(CacherNotification));
+            _notificationChargement.gameObject.SetActive(true);
+            Invoke(nameof(CacherNotification), 2f);
+        }
+    }
+
+    private void OnTimerUrgence(OnTimerUrgenceDéclenche e)
+    {
+        _urgenceActive = true;
+        _timerUrgence  = e.DureeSecondes;
+        if (_panneauUrgence) _panneauUrgence.SetActive(true);
+    }
+
+    private void OnPerroquetParle(OnPerroquetParle e)
+    {
+        if (_notificationChargement)
+        {
+            _notificationChargement.text = $"🦜 \"{e.Phrase}\"";
+            _notificationChargement.gameObject.SetActive(true);
+            CancelInvoke(nameof(CacherNotification));
+            Invoke(nameof(CacherNotification), 4f);
+        }
+    }
+
+    // ================================================================
+    // UTILITAIRES
+    // ================================================================
+
+    private void CacherNotification()
+    {
+        if (_notificationChargement)
+            _notificationChargement.gameObject.SetActive(false);
+    }
+
+    private string FormatTimer(float sec)
+    {
+        int m = Mathf.FloorToInt(sec / 60);
+        int s = Mathf.FloorToInt(sec % 60);
+        return $"{m}:{s:D2}";
+    }
+}
