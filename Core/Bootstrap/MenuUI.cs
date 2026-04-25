@@ -3,9 +3,12 @@
 // Gère les boutons du menu principal.
 // À attacher sur le Canvas de la scène Menu.
 //
-// SETUP UNITY :
-//   Attacher sur le Canvas, puis glisser chaque bouton
-//   dans les champs correspondants de l'Inspector.
+// BOUTONS :
+//   Play            → Hub
+//   Rejoindre       → Coop (V2)
+//   Personnalisation → Scène CharacterCustomization
+//   Options         → Panneau Options (V2)
+//   Exit            → Quitter
 // ============================================================
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,6 +18,7 @@ public class MenuUI : MonoBehaviour
     [Header("Boutons")]
     [SerializeField] private Button _boutonJouer;
     [SerializeField] private Button _boutonCoop;
+    [SerializeField] private Button _boutonPersonnalisation;
     [SerializeField] private Button _boutonOptions;
     [SerializeField] private Button _boutonQuitter;
 
@@ -28,9 +32,9 @@ public class MenuUI : MonoBehaviour
 
     private void Start()
     {
-        // Branche les boutons
         _boutonJouer?.onClick.AddListener(OnJouer);
         _boutonCoop?.onClick.AddListener(OnCoop);
+        _boutonPersonnalisation?.onClick.AddListener(OnPersonnalisation);
         _boutonOptions?.onClick.AddListener(OnOptions);
         _boutonQuitter?.onClick.AddListener(OnQuitter);
 
@@ -49,9 +53,9 @@ public class MenuUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        // Nettoyage — bonne pratique même si la scène est détruite
         _boutonJouer?.onClick.RemoveListener(OnJouer);
         _boutonCoop?.onClick.RemoveListener(OnCoop);
+        _boutonPersonnalisation?.onClick.RemoveListener(OnPersonnalisation);
         _boutonOptions?.onClick.RemoveListener(OnOptions);
         _boutonQuitter?.onClick.RemoveListener(OnQuitter);
     }
@@ -62,7 +66,6 @@ public class MenuUI : MonoBehaviour
 
     private void OnJouer()
     {
-        // Solo → aller au Hub
         GameManager.Instance?.AllerAuHub();
     }
 
@@ -70,6 +73,11 @@ public class MenuUI : MonoBehaviour
     {
         // TODO V2 : lancer le lobby multijoueur
         Debug.Log("[Menu] Coop — non implémenté en V1");
+    }
+
+    private void OnPersonnalisation()
+    {
+        SceneLoader.Instance?.ChargerScene(SceneNames.PERSONNALISATION, avecFondu: true);
     }
 
     private void OnOptions()

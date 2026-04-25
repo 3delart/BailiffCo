@@ -5,6 +5,7 @@
 // Responsabilités :
 //   - Stocker la MissionDef sélectionnée dans le Hub
 //   - Orchestrer les transitions de scènes via SceneLoader
+//   - Stocker la personnalisation du personnage (CharacterCustomizationData)
 //   - Donner accès au SaveData global
 //
 // RÈGLE : Le GameManager ne contient PAS de logique de jeu.
@@ -27,14 +28,13 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        // Pattern singleton : une seule instance, persiste entre scènes
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
 
-        Instance   = this;
+        Instance = this;
         DontDestroyOnLoad(gameObject);
 
         InitialiserDonnees();
@@ -44,10 +44,7 @@ public class GameManager : MonoBehaviour
     // DONNÉES PERSISTANTES
     // ================================================================
 
-    /// <summary>
-    /// Mission sélectionnée dans le Hub.
-    /// MissionSystem la lit au Start() de la scène Mission.
-    /// </summary>
+    /// <summary>Mission sélectionnée dans le Hub.</summary>
     public MissionDef MissionSelectionnee { get; private set; }
 
     /// <summary>Argent total du joueur (persiste entre missions).</summary>
@@ -56,6 +53,14 @@ public class GameManager : MonoBehaviour
     /// <summary>Numéro de la dernière mission complétée.</summary>
     public int DerniereMissionCompletee { get; private set; } = 0;
 
+    /// <summary>
+    /// Personnalisation du personnage — persiste entre toutes les scènes.
+    /// Initialisée avec des valeurs par défaut (tout à 0).
+    /// Modifiée uniquement via SauvegarderPersonnalisation().
+    /// Lue par CharacterPreviewController et CustomizationUI.
+    /// </summary>
+    public CharacterCustomizationData Personnalisation { get; private set; }
+
     // ================================================================
     // INITIALISATION
     // ================================================================
@@ -63,19 +68,39 @@ public class GameManager : MonoBehaviour
     private void InitialiserDonnees()
     {
         // TODO : charger depuis SaveSystem quand il sera implémenté
-        Argent                  = 0f;
+        Argent                   = 0f;
         DerniereMissionCompletee = 0;
-        MissionSelectionnee     = null;
+        MissionSelectionnee      = null;
+        Personnalisation         = new CharacterCustomizationData(); // valeurs par défaut = tout à 0
     }
 
     // ================================================================
-    // API — SÉLECTION DE MISSION (appelé depuis le Hub)
+    // API — PERSONNALISATION
     // ================================================================
 
     /// <summary>
-    /// Enregistre la mission choisie et lance le chargement de la scène.
-    /// À appeler depuis le Hub quand le joueur confirme sa mission.
+    /// Sauvegarde les choix de personnalisation confirmés par le joueur.
+    /// Appelé depuis CustomizationUI.Confirmer().
+    /// Stocke une copie pour éviter les effets de bord.
     /// </summary>
+    public void SauvegarderPersonnalisation(CharacterCustomizationData data)
+    {
+        if (data == null)
+        {
+            Debug.LogWarning("[GameManager] SauvegarderPersonnalisation : data est null, ignoré.");
+            return;
+        }
+
+        Personnalisation = data.Clone();
+        Debug.Log("[GameManager] Personnalisation sauvegardée.");
+
+        // TODO : persister via SaveSystem
+    }
+
+    // ================================================================
+    // API — MISSION
+    // ================================================================
+
     public void LancerMission(MissionDef mission)
     {
         if (mission == null)
@@ -90,10 +115,6 @@ public class GameManager : MonoBehaviour
         SceneLoader.Instance.ChargerScene(mission.NomSceneUnity);
     }
 
-    /// <summary>
-    /// Appelé par MissionSystem quand la mission est terminée.
-    /// Enregistre le résultat et retourne au Hub.
-    /// </summary>
     public void TerminerMission(MissionResult resultat)
     {
         if (resultat.MissionReussie)
@@ -114,7 +135,7 @@ public class GameManager : MonoBehaviour
     }
 
     // ================================================================
-    // API — NAVIGATION GÉNÉRALE
+    // API — NAVIGATION
     // ================================================================
 
     public void AllerAuMenu() =>
@@ -130,10 +151,9 @@ public class GameManager : MonoBehaviour
     }
 
     // ================================================================
-    // API — ARGENT (pour la boutique)
+    // API — ARGENT
     // ================================================================
 
-    /// <summary>Retourne true si le joueur peut payer le montant.</summary>
     public bool PeutPayer(float montant) => Argent >= montant;
 
     public void Debiter(float montant)
@@ -146,3 +166,6 @@ public class GameManager : MonoBehaviour
         Argent += montant;
     }
 }
+
+
+

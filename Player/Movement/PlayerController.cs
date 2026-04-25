@@ -37,6 +37,7 @@ public class PlayerController : MonoBehaviour
     private CharacterController _cc;
     private PlayerNoiseEmitter  _noise;
     private PlayerInteractor    _interactor;
+    private PauseMenu           _pauseMenu;
 
     private Vector3 _velociteXZ    = Vector3.zero;
     private float   _velociteY     = 0f;
@@ -56,11 +57,15 @@ public class PlayerController : MonoBehaviour
         _cc         = GetComponent<CharacterController>();
         _noise      = GetComponent<PlayerNoiseEmitter>();
         _interactor = GetComponent<PlayerInteractor>();
+        _pauseMenu  = FindObjectOfType<PauseMenu>(includeInactive: true);
         Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void Update()
     {
+        // Bloque tout input si le menu pause est ouvert
+        if (_pauseMenu != null && _pauseMenu.EstOuvert) return;
+
         DetecterSol();
         GererGravite();
         GererCamera();
