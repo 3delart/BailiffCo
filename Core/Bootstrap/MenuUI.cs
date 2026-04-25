@@ -43,8 +43,8 @@ public class MenuUI : MonoBehaviour
             _boutonCoop.interactable = false;
 
         // Options désactivées en V1
-        if (_boutonOptions != null)
-            _boutonOptions.interactable = false;
+        if (_boutonPersonnalisation != null)
+            _boutonPersonnalisation.interactable = false;
 
         // Panneau options fermé au départ
         if (_panneauOptions != null)
@@ -83,8 +83,9 @@ public class MenuUI : MonoBehaviour
     private void OnOptions()
     {
         if (_panneauOptions != null)
-            _panneauOptions.SetActive(!_panneauOptions.activeSelf);
+            _panneauOptions.SetActive(true);
     }
+
 
     private void OnQuitter()
     {

@@ -99,8 +99,8 @@ public class PauseMenu : MonoBehaviour
         _boutonPersonnalisation?.gameObject.SetActive(!_estEnMission);
 
         // Options grisées en V1
-        if (_boutonOptions != null)
-            _boutonOptions.interactable = false;
+        if (_boutonPersonnalisation != null)
+            _boutonPersonnalisation.interactable = false;
 
         if (_popupConfirmation != null)
             _popupConfirmation.SetActive(false);
@@ -172,10 +172,10 @@ public class PauseMenu : MonoBehaviour
 
     private void OnOptions()
     {
-        // V2 : ouvrir panneau options
         if (_panneauOptions != null)
             _panneauOptions.SetActive(!_panneauOptions.activeSelf);
     }
+
 
     private void OnMenu()
     {

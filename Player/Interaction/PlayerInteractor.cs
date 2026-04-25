@@ -60,28 +60,31 @@ public class PlayerInteractor : MonoBehaviour
 
     private void GererInteraction()
     {
-        if (_meublePousse != null) return; // en mode pousse, E ne déclenche rien d'autre
-
-        if (_cibleCourante != null && Input.GetKeyDown(KeyCode.E))
+        if (_meublePousse != null) return;
+    
+        KeyCode toucheInteragir = OptionsManager.Instance != null
+            ? OptionsManager.Instance.GetTouche(ActionJeu.Interagir)
+            : KeyCode.E;
+    
+        if (_cibleCourante != null && Input.GetKeyDown(toucheInteragir))
         {
             if (_cibleCourante.CanInteract(gameObject))
             {
-                // Véhicule : transmet le collider visé
                 if (_cibleCourante is Vehicule vehicule)
                     vehicule.SetColliderVise(_colliderVise);
-
-                // Meuble à pousser : E maintenu — on démarre la pousse
+    
                 if (_cibleCourante is MeublePousse meuble)
                 {
                     _meublePousse = meuble;
                     _meublePousse.CommencerPousse(gameObject);
                     return;
                 }
-
+    
                 _cibleCourante.Interact(gameObject);
             }
         }
     }
+
 
     // ================================================================
     // POUSSE MEUBLE (E maintenu → continue, E relâché → stop)
@@ -90,14 +93,18 @@ public class PlayerInteractor : MonoBehaviour
     private void GererPousse()
     {
         if (_meublePousse == null) return;
-
-        // Relâcher E = fin de pousse
-        if (Input.GetKeyUp(KeyCode.E))
+    
+        KeyCode toucheInteragir = OptionsManager.Instance != null
+            ? OptionsManager.Instance.GetTouche(ActionJeu.Interagir)
+            : KeyCode.E;
+    
+        if (Input.GetKeyUp(toucheInteragir))
         {
             _meublePousse.StopperPousse();
             _meublePousse = null;
         }
     }
+
 
     // ================================================================
     // LABEL HUD

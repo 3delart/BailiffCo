@@ -22,12 +22,16 @@ public class PauseMenuTrigger : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        KeyCode touchePause = OptionsManager.Instance != null
+            ? OptionsManager.Instance.GetTouche(ActionJeu.Pause)
+            : KeyCode.Escape;
+    
+        if (Input.GetKeyDown(touchePause))
         {
             if (_pauseMenu == null) return;
-
             if (_pauseMenu.EstOuvert) _pauseMenu.Fermer();
             else                      _pauseMenu.Ouvrir();
         }
     }
+
 }

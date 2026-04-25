@@ -121,6 +121,7 @@ public class InventaireWheel : MonoBehaviour
     private bool _visible        = false;
     private int  _slotSelectionne = SLOT_CENTRE;
     private int  _slotActif       = SLOT_CENTRE; // slot équipé actuellement
+    public bool EstOuverte => _visible;
 
     // ================================================================
     // LIFECYCLE
@@ -131,33 +132,33 @@ public class InventaireWheel : MonoBehaviour
         if (_inventaire == null) _inventaire = FindObjectOfType<InventaireSystem>();
         if (_carry      == null) _carry      = FindObjectOfType<PlayerCarry>();
 
-        // Marque le slot centre comme "mains"
         if (_slots[SLOT_CENTRE] != null)
             _slots[SLOT_CENTRE].EstSlotMains = true;
 
-        gameObject.SetActive(false);
+        // ← Change ici : cache le WheelRoot, pas le GameObject parent
+        if (_wheelRoot != null) _wheelRoot.gameObject.SetActive(false);
         RafraichirSlots();
     }
 
     private void Update()
     {
-        // Tab maintenu → afficher
-        if (Input.GetKeyDown(KeyCode.Tab))
-        {
+        KeyCode toucheInv = OptionsManager.Instance != null
+            ? OptionsManager.Instance.GetTouche(ActionJeu.Inventaire)
+            : KeyCode.Tab;
+    
+        if (Input.GetKeyDown(toucheInv))
             OuvrirRoue();
-        }
-
-        if (Input.GetKeyUp(KeyCode.Tab))
+    
+        if (Input.GetKeyUp(toucheInv))
         {
             SelectionnerSlot(_slotSelectionne);
             FermerRoue();
         }
-
+    
         if (_visible)
-        {
             MettreAJourSelection();
-        }
     }
+
 
     // ================================================================
     // OUVERTURE / FERMETURE
@@ -166,20 +167,23 @@ public class InventaireWheel : MonoBehaviour
     private void OuvrirRoue()
     {
         _visible = true;
-        gameObject.SetActive(true);
+        // ← Affiche le WheelRoot, pas le GameObject parent
+        if (_wheelRoot != null) _wheelRoot.gameObject.SetActive(true);
         RafraichirSlots();
 
-        // Libère le curseur pour la sélection à la souris
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible   = false; // curseur invisible mais libre — on affiche la sélection dans la roue
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible   = false;
+
+        _centreEcran = new Vector2(Screen.width / 2f, Screen.height / 2f);
+        _positionSourisVirtuelle = _centreEcran;
     }
 
     private void FermerRoue()
     {
         _visible = false;
-        gameObject.SetActive(false);
+        // ← Cache le WheelRoot, pas le GameObject parent
+        if (_wheelRoot != null) _wheelRoot.gameObject.SetActive(false);
 
-        // Réverrouille le curseur (mode FPS)
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible   = false;
     }
@@ -188,27 +192,36 @@ public class InventaireWheel : MonoBehaviour
     // SÉLECTION PAR SOURIS
     // ================================================================
 
+    private Vector2 _centreEcran;
+    private Vector2 _positionSourisVirtuelle;
+    private const float VITESSE_SOURIS_ROUE = 3f;
+
     private void MettreAJourSelection()
     {
         if (_wheelRoot == null) return;
 
-        // Position de la souris relative au centre de la roue
-        Vector2 centre = new Vector2(Screen.width / 2f, Screen.height / 2f);
-        Vector2 delta  = (Vector2)Input.mousePosition - centre;
+        // Accumule le mouvement souris relatif (fonctionne en mode FPS)
+        float dx = Input.GetAxis("Mouse X") * VITESSE_SOURIS_ROUE;
+        float dy = Input.GetAxis("Mouse Y") * VITESSE_SOURIS_ROUE;
+
+        _positionSourisVirtuelle.x = Mathf.Clamp(
+            _positionSourisVirtuelle.x + dx,
+            _centreEcran.x - 200f, _centreEcran.x + 200f);
+        _positionSourisVirtuelle.y = Mathf.Clamp(
+            _positionSourisVirtuelle.y + dy,
+            _centreEcran.y - 200f, _centreEcran.y + 200f);
+
+        Vector2 delta = _positionSourisVirtuelle - _centreEcran;
 
         int nouveau;
-
         if (delta.magnitude < RAYON_MORT)
         {
-            // Dans la zone morte → slot mains
             nouveau = SLOT_CENTRE;
         }
         else
         {
-            // Angle en degrés (0 = droite, 90 = haut, sens trigo)
             float angle = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
             if (angle < 0) angle += 360f;
-
             nouveau = TrouverSlotPlusProche(angle);
         }
 
@@ -218,7 +231,6 @@ public class InventaireWheel : MonoBehaviour
             MettreAJourVisuels();
         }
     }
-
     private int TrouverSlotPlusProche(float angle)
     {
         int meilleur    = SLOT_HAUT;

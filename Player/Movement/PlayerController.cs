@@ -1,6 +1,7 @@
 // ============================================================
 // PlayerController.cs — Bailiff & Co
 // Déplacements, sprint, accroupissement, allongement, saut.
+// Toutes les touches lues depuis OptionsManager (rebindable).
 // ============================================================
 using UnityEngine;
 
@@ -21,12 +22,12 @@ public class PlayerController : MonoBehaviour
 
     [Header("Caméra")]
     [SerializeField] private Transform _camera;
-    [SerializeField] private float     _sensibiliteSouris     = 2f;
-    [SerializeField] private float     _clampVertical         = 60f;
-    [SerializeField] private float     _hauteurCameraNormale  = 1.8f;
-    [SerializeField] private float     _hauteurCameraAccroupi = 1.25f;
-    [SerializeField] private float     _hauteurCameraAllonge  = 0.2f;
-    [SerializeField] private float     _vitesseCameraLerp     = 8f;
+    [SerializeField] private float     _sensibiliteSourisFallback = 2f; // utilisé si OptionsManager absent
+    [SerializeField] private float     _clampVertical             = 60f;
+    [SerializeField] private float     _hauteurCameraNormale      = 1.8f;
+    [SerializeField] private float     _hauteurCameraAccroupi     = 1.25f;
+    [SerializeField] private float     _hauteurCameraAllonge      = 0.2f;
+    [SerializeField] private float     _vitesseCameraLerp         = 8f;
 
     [Header("Hauteur CharacterController")]
     [SerializeField] private float _hauteurNormale           = 1.8f;
@@ -38,6 +39,7 @@ public class PlayerController : MonoBehaviour
     private PlayerNoiseEmitter  _noise;
     private PlayerInteractor    _interactor;
     private PauseMenu           _pauseMenu;
+    private InventaireWheel     _inventaireWheel;
 
     private Vector3 _velociteXZ    = Vector3.zero;
     private float   _velociteY     = 0f;
@@ -52,18 +54,36 @@ public class PlayerController : MonoBehaviour
     private const float COYOTE_TIME = 0.15f;
     private float _dernierTempsAuSol = 0f;
 
+    // ================================================================
+    // RACCOURCI — lit une touche depuis OptionsManager avec fallback
+    // ================================================================
+
+    private bool Appui(ActionJeu action)
+        => OptionsManager.Instance != null
+            ? Input.GetKeyDown(OptionsManager.Instance.GetTouche(action))
+            : false;
+
+    private bool Maintenu(ActionJeu action)
+        => OptionsManager.Instance != null
+            ? Input.GetKey(OptionsManager.Instance.GetTouche(action))
+            : false;
+
+    // ================================================================
+    // LIFECYCLE
+    // ================================================================
+
     private void Awake()
     {
-        _cc         = GetComponent<CharacterController>();
-        _noise      = GetComponent<PlayerNoiseEmitter>();
-        _interactor = GetComponent<PlayerInteractor>();
-        _pauseMenu  = FindObjectOfType<PauseMenu>(includeInactive: true);
+        _cc              = GetComponent<CharacterController>();
+        _noise           = GetComponent<PlayerNoiseEmitter>();
+        _interactor      = GetComponent<PlayerInteractor>();
+        _pauseMenu       = FindObjectOfType<PauseMenu>(includeInactive: true);
+        _inventaireWheel = FindObjectOfType<InventaireWheel>(includeInactive: true);
         Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void Update()
     {
-        // Bloque tout input si le menu pause est ouvert
         if (_pauseMenu != null && _pauseMenu.EstOuvert) return;
 
         DetecterSol();
@@ -78,27 +98,19 @@ public class PlayerController : MonoBehaviour
 
     // ================================================================
     // VÉRIFICATION ESPACE LIBRE AU-DESSUS
-    // Fait un SphereCast vers le haut pour savoir si on peut
-    // se relever jusqu'à la hauteur cible.
     // ================================================================
 
     private bool EspaceLibrePour(float hauteurCible)
     {
-        // Le bas du CC est toujours à transform.position (center.y = height/2)
-        // On part du centre actuel et on teste si la hauteur cible rentre
         float hauteurActuelle = _cc.height;
         float difference      = hauteurCible - hauteurActuelle;
+        if (difference <= 0f) return true;
 
-        if (difference <= 0f) return true; // on se baisse, toujours autorisé
-
-        // Origine du cast : sommet actuel du CC
         Vector3 origine = transform.position + Vector3.up * hauteurActuelle;
         float   radius  = _cc.radius * 0.9f;
 
-        // On teste si la différence de hauteur est libre
         bool bloque = Physics.SphereCast(
-            origine, radius, Vector3.up,
-            out _, difference,
+            origine, radius, Vector3.up, out _, difference,
             Physics.AllLayers, QueryTriggerInteraction.Ignore);
 
         return !bloque;
@@ -110,9 +122,9 @@ public class PlayerController : MonoBehaviour
 
     private void DetecterSol()
     {
-        float basCC = _cc.center.y - _cc.height * 0.5f;
-        Vector3 bas = transform.position + Vector3.up * (basCC + 0.05f);
-        float dist  = 0.35f;
+        float basCC   = _cc.center.y - _cc.height * 0.5f;
+        Vector3 bas   = transform.position + Vector3.up * (basCC + 0.05f);
+        float dist    = 0.35f;
 
         bool c = Physics.Raycast(bas, Vector3.down, out RaycastHit hit, dist,
                      Physics.AllLayers, QueryTriggerInteraction.Ignore);
@@ -136,8 +148,18 @@ public class PlayerController : MonoBehaviour
 
     private void GererCamera()
     {
-        float mouseX = Input.GetAxis("Mouse X") * _sensibiliteSouris;
-        float mouseY = Input.GetAxis("Mouse Y") * _sensibiliteSouris;
+        // Bloque la caméra si la roue d'inventaire est ouverte
+        if (_inventaireWheel != null && _inventaireWheel.EstOuverte) return;
+
+        // Sensibilité depuis OptionsManager ou fallback Inspector
+        float sensi = OptionsManager.Instance != null
+            ? OptionsManager.Instance.SensibiliteSouris
+            : _sensibiliteSourisFallback;
+
+        bool inverserY = OptionsManager.Instance != null && OptionsManager.Instance.InverserY;
+
+        float mouseX =  Input.GetAxis("Mouse X") * sensi;
+        float mouseY =  Input.GetAxis("Mouse Y") * sensi * (inverserY ? -1f : 1f);
 
         _rotationX -= mouseY;
         _rotationX  = Mathf.Clamp(_rotationX, -_clampVertical, _clampVertical);
@@ -162,59 +184,40 @@ public class PlayerController : MonoBehaviour
     }
 
     // ================================================================
-    // POSTURE — vérifie l'espace libre avant de se relever
+    // POSTURE — Ctrl = accroupi, X = allongé
     // ================================================================
 
     private void GererPosture()
     {
-        // Ctrl : toggle accroupi / debout
-        if (Input.GetKeyDown(KeyCode.LeftControl))
+        if (Appui(ActionJeu.Accroupi))
         {
             if (_estAllonge)
             {
-                // Allongé → accroupi : vérifie hauteur accroupi
                 if (EspaceLibrePour(_hauteurAccroupi))
-                {
-                    _estAllonge  = false;
-                    _estAccroupi = true;
-                }
+                { _estAllonge = false; _estAccroupi = true; }
             }
             else if (_estAccroupi)
             {
-                // Accroupi → debout : vérifie hauteur normale
                 if (EspaceLibrePour(_hauteurNormale))
-                {
                     _estAccroupi = false;
-                }
             }
             else
             {
-                // Debout → accroupi : toujours autorisé (on se baisse)
                 _estAccroupi = true;
             }
         }
 
-        // X : toggle allongé / debout
-        if (Input.GetKeyDown(KeyCode.X))
+        if (Appui(ActionJeu.Allonge))
         {
             if (_estAllonge)
             {
-                // Allongé → debout : vérifie hauteur normale
                 if (EspaceLibrePour(_hauteurNormale))
-                {
-                    _estAllonge  = false;
-                    _estAccroupi = false;
-                }
-                // Sinon essaie au moins de passer accroupi
+                { _estAllonge = false; _estAccroupi = false; }
                 else if (EspaceLibrePour(_hauteurAccroupi))
-                {
-                    _estAllonge  = false;
-                    _estAccroupi = true;
-                }
+                { _estAllonge = false; _estAccroupi = true; }
             }
             else
             {
-                // Debout ou accroupi → allongé : toujours autorisé
                 _estAccroupi = false;
                 _estAllonge  = true;
             }
@@ -222,30 +225,45 @@ public class PlayerController : MonoBehaviour
     }
 
     // ================================================================
-    // MOUVEMENT
+    // MOUVEMENT — lit Avancer/Reculer/Gauche/Droite depuis OptionsManager
     // ================================================================
 
     private void GererMouvement()
     {
         var hubUI = FindObjectOfType<HubUI>();
         if (hubUI != null && hubUI.UnPanneauEstOuvert) return;
-        
+
         if (_estAuSol)
         {
-            bool sprint = Input.GetKey(KeyCode.LeftShift)
-                          && !_estAccroupi && !_estAllonge;
+            bool sprint = Maintenu(ActionJeu.Sprint) && !_estAccroupi && !_estAllonge;
 
             float vitesseBase = _estAllonge  ? _vitesseAllonge
                               : _estAccroupi ? _vitesseAccroupi
                               : sprint       ? _vitesseSprint
                               :                _vitesseNormale;
 
-            // Réduit la vitesse si on pousse un meuble
             float multiMeuble = _interactor != null ? _interactor.MultiplicateurVitesseMeuble : 1f;
-            float vitesse = vitesseBase * multiMeuble;
+            float vitesse     = vitesseBase * multiMeuble;
 
-            float h = Input.GetAxisRaw("Horizontal");
-            float v = Input.GetAxisRaw("Vertical");
+            // Lecture des touches de déplacement depuis OptionsManager
+            float h = 0f;
+            float v = 0f;
+
+            if (OptionsManager.Instance != null)
+            {
+                OptionsData data = OptionsManager.Instance.Data;
+                if (Input.GetKey((KeyCode)data.ToucheAvancer)) v += 1f;
+                if (Input.GetKey((KeyCode)data.ToucheReculer)) v -= 1f;
+                if (Input.GetKey((KeyCode)data.ToucheDroite))  h += 1f;
+                if (Input.GetKey((KeyCode)data.ToucheGauche))  h -= 1f;
+            }
+            else
+            {
+                // Fallback axes Unity si OptionsManager absent
+                h = Input.GetAxisRaw("Horizontal");
+                v = Input.GetAxisRaw("Vertical");
+            }
+
             Vector3 dir = Vector3.ClampMagnitude(
                 transform.right * h + transform.forward * v, 1f);
 
@@ -283,18 +301,15 @@ public class PlayerController : MonoBehaviour
 
     private void GererSaut()
     {
-        bool cooldownOk  = (Time.time - _dernierSaut) >= _cooldownSaut;
-        bool coyoteOk    = (Time.time - _dernierTempsAuSol) < COYOTE_TIME;
-        bool modDeblocage = cooldownOk && !_estAuSol
-                            && (Time.time - _dernierTempsAuSol) > 2f;
-
+        bool cooldownOk = (Time.time - _dernierSaut) >= _cooldownSaut;
+        bool coyoteOk   = (Time.time - _dernierTempsAuSol) < COYOTE_TIME;
         bool peutSauter = cooldownOk && (coyoteOk || _estAuSol);
 
-        if ((peutSauter || modDeblocage)
+        if (peutSauter
             && !_estAccroupi
             && !_estAllonge
             && _velociteY <= 0.1f
-            && Input.GetKeyDown(KeyCode.Space))
+            && Appui(ActionJeu.Saut))
         {
             _velociteY         = _forceVSaut;
             _dernierSaut       = Time.time;
@@ -338,7 +353,16 @@ public class PlayerController : MonoBehaviour
     public bool EstAccroupi    => _estAccroupi;
     public bool EstAllonge     => _estAllonge;
     public bool EstAuSol       => _estAuSol;
-    public bool EstEnMouvement =>
-        Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1f ||
-        Mathf.Abs(Input.GetAxisRaw("Vertical"))   > 0.1f;
+    public bool EstEnMouvement
+    {
+        get
+        {
+            if (OptionsManager.Instance == null) return false;
+            OptionsData d = OptionsManager.Instance.Data;
+            return Input.GetKey((KeyCode)d.ToucheAvancer)
+                || Input.GetKey((KeyCode)d.ToucheReculer)
+                || Input.GetKey((KeyCode)d.ToucheGauche)
+                || Input.GetKey((KeyCode)d.ToucheDroite);
+        }
+    }
 }
