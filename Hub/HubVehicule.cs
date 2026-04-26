@@ -1,17 +1,29 @@
 // ============================================================
 // HubVehicule.cs — Bailiff & Co
 // À mettre sur chaque véhicule dans le parking du Hub.
-// Véhicule débloqué → sélectionnable.
-// Véhicule verrouillé → affiche le prix/condition de déblocage.
+// Le joueur s'approche de la PORTE du véhicule et appuie E
+// → popup de détail avec prix de location + boutons.
 //
 // SETUP UNITY :
 //   Prefab véhicule dans le parking :
-//   ├── Mesh du véhicule (MeshRenderer)
-//   ├── Collider (Layer Interactable)
-//   ├── HubVehicule.cs
-//   └── LabelCanvas (World Space) → TextMeshPro label
+//   ├── Root (HubVehicule.cs)
+//   │   └── Mesh du véhicule
+//   └── PorteInteraction (BoxCollider — Layer Interactable)
+//       └── Ce collider est ce que le joueur vise avec E
+//
+//   Dans l'Inspector :
+//   - _def          : VehiculeDef ScriptableObject
+//   - _prixLocation : prix de location pour cette mission (€)
+//                     0 = gratuit (vélo cargo)
+//   - _colliderPorte : le BoxCollider sur la porte
+//
+// FONCTIONNEMENT :
+//   Joueur vise la porte → label contextuel → E
+//   → HubManager.DemanderLocationVehicule()
+//   → HubUI.AfficherPanelVehicule() avec :
+//       Nom | Prix | Capacité | Avantage | Inconvénient | Solde
+//       [Louer & Partir] [Annuler]
 // ============================================================
-using TMPro;
 using UnityEngine;
 
 public class HubVehicule : MonoBehaviour, IInteractable
@@ -22,16 +34,27 @@ public class HubVehicule : MonoBehaviour, IInteractable
 
     [Header("Données")]
     [SerializeField] private VehiculeDef _def;
-    [SerializeField] private bool        _debloque = false;
 
-    [Header("Label flottant")]
-    [SerializeField] private TextMeshPro _labelTexte;
-    [SerializeField] private float       _hauteurLabel = 1.5f;
+    [Header("Location")]
+    [Tooltip("Prix de location pour une mission. 0 = gratuit (vélo).")]
+    [SerializeField] private float _prixLocation = 0f;
 
     [Header("Visuel verrouillé")]
-    [Tooltip("Matériau grisé appliqué si le véhicule n'est pas débloqué")]
-    [SerializeField] private Material _materielVerrouille;
+    [Tooltip("Matériau grisé si le véhicule n'est pas disponible (optionnel)")]
+    [SerializeField] private Material _materielIndisponible;
     [SerializeField] private Renderer _renderer;
+
+    [Header("Label flottant (optionnel)")]
+    [SerializeField] private TMPro.TextMeshPro _labelTexte;
+    [SerializeField] private float             _hauteurLabel = 2f;
+
+    // ================================================================
+    // ÉTAT
+    // ================================================================
+
+    // Un véhicule peut être temporairement indisponible
+    // (ex : déjà loué par quelqu'un d'autre en coop — futur)
+    private bool _disponible = true;
 
     // ================================================================
     // LIFECYCLE
@@ -42,7 +65,6 @@ public class HubVehicule : MonoBehaviour, IInteractable
         if (_renderer == null)
             _renderer = GetComponentInChildren<Renderer>();
 
-        AppliquerVisuels();
         MettreAJourLabel();
     }
 
@@ -62,59 +84,43 @@ public class HubVehicule : MonoBehaviour, IInteractable
     // IINTERACTABLE
     // ================================================================
 
-    public bool CanInteract(GameObject interacteur) => true; // toujours — pour afficher le label
+    public bool CanInteract(GameObject interacteur) => _def != null;
 
     public void Interact(GameObject interacteur)
     {
         if (_def == null) return;
 
-        if (_debloque)
+        if (!_disponible)
         {
-            HubManager.Instance?.SelectionnerVehicule(_def);
-            Debug.Log($"[HubVehicule] {_def.NomVehicule} sélectionné.");
+            FindObjectOfType<HubUI>()?.AfficherErreur("Ce véhicule n'est pas disponible.");
+            return;
         }
-        else
-        {
-            // Affiche condition de déblocage
-            string condition = string.IsNullOrEmpty(_def.ConditionSpeciale)
-                ? $"Mission {_def.NumeroMissionRequis} requise"
-                : _def.ConditionSpeciale;
 
-            FindObjectOfType<HubUI>()?.AfficherErreur($"Véhicule verrouillé — {condition}");
-            Debug.Log($"[HubVehicule] {_def.NomVehicule} verrouillé : {condition}");
-        }
+        // Délègue au HubManager qui vérifie le solde et affiche le panel
+        HubManager.Instance?.DemanderLocationVehicule(_def, _prixLocation);
     }
 
     public string GetInteractionLabel()
     {
         if (_def == null) return "Véhicule";
 
-        if (_debloque)
-        {
-            bool estSelectionne = HubManager.Instance?.VehiculeSelectionne == _def;
-            return estSelectionne
-                ? $"✓ {_def.NomVehicule} (sélectionné)"
-                : $"{_def.NomVehicule} — [E] Sélectionner";
-        }
-        else
-        {
-            string condition = string.IsNullOrEmpty(_def.ConditionSpeciale)
-                ? $"Mission {_def.NumeroMissionRequis}"
-                : _def.ConditionSpeciale;
-            return $"🔒 {_def.NomVehicule} — {condition}";
-        }
+        if (!_disponible)
+            return $"{_def.NomVehicule} — Indisponible";
+
+        float solde = GameManager.Instance?.Argent ?? 0f;
+        bool  peutLouer = solde >= _prixLocation;
+
+        string prix = _prixLocation <= 0f ? "Gratuit" : $"{_prixLocation:N0} €/mission";
+
+        if (!peutLouer && _prixLocation > 0f)
+            return $"{_def.NomVehicule} ({prix}) — [E] Voir détails  ⚠ Fonds insuffisants";
+
+        return $"{_def.NomVehicule} ({prix}) — [E] Voir détails";
     }
 
     // ================================================================
-    // VISUELS
+    // UTILITAIRES
     // ================================================================
-
-    private void AppliquerVisuels()
-    {
-        if (_renderer == null || _materielVerrouille == null) return;
-        if (!_debloque)
-            _renderer.material = _materielVerrouille;
-    }
 
     private void MettreAJourLabel()
     {
@@ -123,23 +129,33 @@ public class HubVehicule : MonoBehaviour, IInteractable
         if (_labelTexte != null)
             _labelTexte.transform.localPosition = Vector3.up * _hauteurLabel;
 
-        _labelTexte.text = _debloque
-            ? $"{_def.NomVehicule}\n<size=70%>Capacité : {_def.CapaciteObjets} objets</size>"
-            : $"🔒 {_def.NomVehicule}\n<size=70%>Verrouillé</size>";
+        string prix = _prixLocation <= 0f ? "Gratuit" : $"{_prixLocation:N0} €/mission";
+        _labelTexte.text = $"{_def.NomVehicule}\n<size=70%>{prix} · {_def.CapaciteObjets} objets</size>";
+
+        _labelTexte.color = _disponible ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f);
+
+        // Applique le matériau indisponible si nécessaire
+        if (_renderer != null && _materielIndisponible != null && !_disponible)
+            _renderer.material = _materielIndisponible;
     }
 
     // ================================================================
     // API PUBLIQUE
     // ================================================================
 
-    /// <summary>Appelé par SaveSystem au chargement si le véhicule a été débloqué.</summary>
-    public void Debloquer()
+    /// <summary>Rend le véhicule indisponible (ex: coop futur).</summary>
+    public void SetDisponible(bool disponible)
     {
-        _debloque = true;
-        AppliquerVisuels();
+        _disponible = disponible;
         MettreAJourLabel();
     }
 
-    public VehiculeDef Def        => _def;
-    public bool        EstDebloque => _debloque;
+    // ================================================================
+    // PROPRIÉTÉS
+    // ================================================================
+
+    public VehiculeDef Def          => _def;
+    public float       PrixLocation => _prixLocation;
+    public bool        Disponible   => _disponible;
+    public bool        EstGratuit   => _prixLocation <= 0f;
 }

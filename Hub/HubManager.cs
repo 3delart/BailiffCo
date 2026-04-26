@@ -1,19 +1,21 @@
 // ============================================================
 // HubManager.cs — Bailiff & Co
-// Orchestre toute la logique du Hub.
-// Stocke la mission et le véhicule sélectionnés.
-// Gère le départ en mission.
+// Orchestrateur du Hub. Source de vérité locale pour la session.
+// Gère : sélection mission, location véhicule, départ.
 //
 // SETUP UNITY :
-//   Créer un GameObject "HubManager" dans la scène Hub.
+//   GameObject "HubManager" dans la scène Hub.
 //   Assigner les références dans l'Inspector.
+//   Le HubManager ne persiste PAS entre les scènes —
+//   c'est GameManager (DontDestroyOnLoad) qui transporte
+//   la MissionDef vers la scène Mission.
 // ============================================================
 using UnityEngine;
 
 public class HubManager : MonoBehaviour
 {
     // ================================================================
-    // SINGLETON (local à la scène)
+    // SINGLETON LOCAL
     // ================================================================
 
     public static HubManager Instance { get; private set; }
@@ -31,15 +33,13 @@ public class HubManager : MonoBehaviour
     [Header("UI")]
     [SerializeField] private HubUI _hubUI;
 
-    [Header("Véhicules disponibles dans le parking")]
-    [SerializeField] private HubVehicule[] _vehiculesDuParking;
-
     // ================================================================
-    // ÉTAT
+    // ÉTAT SESSION
     // ================================================================
 
-    private MissionDef   _missionSelectionnee;
-    private VehiculeDef  _vehiculeSelectionne;
+    private MissionDef  _missionSelectionnee;
+    private VehiculeDef _vehiculeSelectionne;
+    private float       _prixLocationVehicule;
 
     // ================================================================
     // LIFECYCLE
@@ -47,88 +47,107 @@ public class HubManager : MonoBehaviour
 
     private void Start()
     {
-        // Affiche l'argent du joueur dès l'arrivée au Hub
+        if (_hubUI == null)
+            _hubUI = FindObjectOfType<HubUI>();
+
+        // Affiche l'argent du joueur dès l'arrivée
         _hubUI?.MettreAJourArgent(GameManager.Instance?.Argent ?? 0f);
 
-        // Sélectionne le véhicule de base par défaut (index 0 si débloqué)
-        SelectionnerVehiculeParDefaut();
+        // Déverrouille le curseur — on est dans le Hub
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible   = true;
     }
 
     // ================================================================
-    // SÉLECTION MISSION
+    // SÉLECTION MISSION — appelé par HubPNJ (Chef)
     // ================================================================
 
     public void SelectionnerMission(MissionDef mission)
     {
+        if (mission == null) return;
         _missionSelectionnee = mission;
         Debug.Log($"[HubManager] Mission sélectionnée : {mission.NomMission}");
         _hubUI?.AfficherFicheMission(mission);
     }
 
     // ================================================================
-    // SÉLECTION VÉHICULE
-    // ================================================================
-
-    public void SelectionnerVehicule(VehiculeDef vehicule)
-    {
-        _vehiculeSelectionne = vehicule;
-        Debug.Log($"[HubManager] Véhicule sélectionné : {vehicule.NomVehicule}");
-        _hubUI?.MettreAJourVehiculeSelectionne(vehicule);
-    }
-
-    private void SelectionnerVehiculeParDefaut()
-    {
-        foreach (var hv in _vehiculesDuParking)
-        {
-            if (hv != null && hv.EstDebloque)
-            {
-                SelectionnerVehicule(hv.Def);
-                return;
-            }
-        }
-    }
-
-    // ================================================================
-    // DÉPART EN MISSION
+    // LOCATION VÉHICULE — appelé par HubVehicule
     // ================================================================
 
     /// <summary>
-    /// Appelé quand le joueur confirme le départ.
-    /// Vérifie que tout est en ordre avant de lancer.
+    /// Appelé quand le joueur interagit avec la porte d'un véhicule.
+    /// Affiche le panel de détail + boutons Louer / Annuler.
     /// </summary>
-    public void DemanderDepart()
+    public void DemanderLocationVehicule(VehiculeDef vehicule, float prixLocation)
+    {
+        if (vehicule == null) return;
+
+        _vehiculeSelectionne  = vehicule;
+        _prixLocationVehicule = prixLocation;
+
+        _hubUI?.AfficherPanelVehicule(vehicule, prixLocation);
+    }
+
+    /// <summary>
+    /// Appelé par HubUI bouton "Louer & Partir".
+    /// Vérifie le solde, déduit, lance la mission.
+    /// </summary>
+    public void ConfirmerLocationEtPartir()
     {
         if (_missionSelectionnee == null)
         {
-            _hubUI?.AfficherErreur("Aucune mission sélectionnée !");
+            _hubUI?.AfficherErreur("Aucune mission sélectionnée !\nParle au Chef d'abord.");
             return;
         }
+
         if (_vehiculeSelectionne == null)
         {
-            _hubUI?.AfficherErreur("Aucun véhicule sélectionné !");
+            _hubUI?.AfficherErreur("Aucun véhicule sélectionné.");
             return;
         }
 
-        _hubUI?.AfficherPopupConfirmationDepart(_missionSelectionnee, _vehiculeSelectionne);
-    }
+        float argent = GameManager.Instance?.Argent ?? 0f;
+        if (argent < _prixLocationVehicule)
+        {
+            _hubUI?.AfficherErreur(
+                $"Fonds insuffisants.\n" +
+                $"Location : {_prixLocationVehicule:N0} €\n" +
+                $"Ton solde : {argent:N0} €");
+            return;
+        }
 
-    /// <summary>Appelé par le popup de confirmation — le joueur a dit Oui.</summary>
-    public void ConfirmerDepart()
-    {
-        if (_missionSelectionnee == null) return;
+        // Déduit la location
+        GameManager.Instance?.Debiter(_prixLocationVehicule);
+        Debug.Log($"[HubManager] Location {_vehiculeSelectionne.NomVehicule} " +
+                  $"({_prixLocationVehicule:N0} €) — Solde restant : " +
+                  $"{GameManager.Instance?.Argent:N0} €");
 
-        // TODO : transmettre le véhicule sélectionné à MissionSystem
-        // Pour l'instant on stocke dans GameManager
-        Debug.Log($"[HubManager] Départ → {_missionSelectionnee.NomMission} avec {_vehiculeSelectionne?.NomVehicule}");
-
+        // Lance la mission via GameManager
         GameManager.Instance?.LancerMission(_missionSelectionnee);
     }
 
+    /// <summary>Appelé par HubUI bouton "Annuler" sur le panel véhicule.</summary>
+    public void AnnulerLocationVehicule()
+    {
+        _vehiculeSelectionne  = null;
+        _prixLocationVehicule = 0f;
+        _hubUI?.FermerPanelVehicule();
+    }
+
     // ================================================================
-    // PROPRIÉTÉS
+    // PROPRIÉTÉS PUBLIQUES
     // ================================================================
 
     public MissionDef  MissionSelectionnee  => _missionSelectionnee;
     public VehiculeDef VehiculeSelectionne  => _vehiculeSelectionne;
-    public bool        PretAPartir          => _missionSelectionnee != null && _vehiculeSelectionne != null;
+    public float       PrixLocation         => _prixLocationVehicule;
+    public bool        MissionChoisie       => _missionSelectionnee != null;
+    public bool        VehiculeChoisi       => _vehiculeSelectionne != null;
+
+    // ================================================================
+    // UTILITAIRES — appelés par HubUI
+    // ================================================================
+
+    public void MettreAJourAffichageArgent()
+        => _hubUI?.MettreAJourArgent(GameManager.Instance?.Argent ?? 0f);
 }

@@ -1,11 +1,11 @@
 // ============================================================
-// MeublePousse.cs — Bailiff & Co
+// MeubleInteractable.cs — Bailiff & Co
 // Le meuble suit exactement le delta joueur.
 // Sa masse réduit la vitesse du joueur via _multiplicateurVitesse.
 // ============================================================
 using UnityEngine;
 
-public class MeublePousse : MonoBehaviour, IInteractable
+public class MeubleInteractable : MonoBehaviour, IInteractable
 {
     [Header("Résistance")]
     [Tooltip("Masse simulée du meuble en kg — réduit la vitesse du joueur")]
