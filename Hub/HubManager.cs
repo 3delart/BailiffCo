@@ -1,14 +1,6 @@
 // ============================================================
 // HubManager.cs — Bailiff & Co
 // Orchestrateur du Hub. Source de vérité locale pour la session.
-// Gère : sélection mission, location véhicule, départ.
-//
-// SETUP UNITY :
-//   GameObject "HubManager" dans la scène Hub.
-//   Assigner les références dans l'Inspector.
-//   Le HubManager ne persiste PAS entre les scènes —
-//   c'est GameManager (DontDestroyOnLoad) qui transporte
-//   la MissionDef vers la scène Mission.
 // ============================================================
 using UnityEngine;
 
@@ -33,6 +25,10 @@ public class HubManager : MonoBehaviour
     [Header("UI")]
     [SerializeField] private HubUI _hubUI;
 
+    [Header("TEST — Retirer en production")]
+    [Tooltip("Glisse ici une MissionDef pour tester sans passer par le Chef PNJ.")]
+    [SerializeField] private MissionDef _missionTest;
+
     // ================================================================
     // ÉTAT SESSION
     // ================================================================
@@ -50,16 +46,21 @@ public class HubManager : MonoBehaviour
         if (_hubUI == null)
             _hubUI = FindObjectOfType<HubUI>();
 
-        // Affiche l'argent du joueur dès l'arrivée
         _hubUI?.MettreAJourArgent(GameManager.Instance?.Argent ?? 0f);
 
-        // Déverrouille le curseur — on est dans le Hub
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible   = true;
+
+        // Auto-sélectionne la mission de test si renseignée
+        if (_missionTest != null)
+        {
+            _missionSelectionnee = _missionTest;
+            Debug.Log($"[HubManager] Mission test auto-sélectionnée : {_missionTest.NomMission}");
+        }
     }
 
     // ================================================================
-    // SÉLECTION MISSION — appelé par HubPNJ (Chef)
+    // SÉLECTION MISSION
     // ================================================================
 
     public void SelectionnerMission(MissionDef mission)
@@ -71,27 +72,17 @@ public class HubManager : MonoBehaviour
     }
 
     // ================================================================
-    // LOCATION VÉHICULE — appelé par HubVehicule
+    // LOCATION VÉHICULE
     // ================================================================
 
-    /// <summary>
-    /// Appelé quand le joueur interagit avec la porte d'un véhicule.
-    /// Affiche le panel de détail + boutons Louer / Annuler.
-    /// </summary>
     public void DemanderLocationVehicule(VehiculeDef vehicule, float prixLocation)
     {
         if (vehicule == null) return;
-
         _vehiculeSelectionne  = vehicule;
         _prixLocationVehicule = prixLocation;
-
         _hubUI?.AfficherPanelVehicule(vehicule, prixLocation);
     }
 
-    /// <summary>
-    /// Appelé par HubUI bouton "Louer & Partir".
-    /// Vérifie le solde, déduit, lance la mission.
-    /// </summary>
     public void ConfirmerLocationEtPartir()
     {
         if (_missionSelectionnee == null)
@@ -116,17 +107,14 @@ public class HubManager : MonoBehaviour
             return;
         }
 
-        // Déduit la location
         GameManager.Instance?.Debiter(_prixLocationVehicule);
-        Debug.Log($"[HubManager] Location {_vehiculeSelectionne.NomVehicule} " +
-                  $"({_prixLocationVehicule:N0} €) — Solde restant : " +
-                  $"{GameManager.Instance?.Argent:N0} €");
 
-        // Lance la mission via GameManager
+        Debug.Log($"[HubManager] Départ → {_missionSelectionnee.NomMission} " +
+                  $"avec {_vehiculeSelectionne.NomVehicule} ({_prixLocationVehicule:N0} €)");
+
         GameManager.Instance?.LancerMission(_missionSelectionnee);
     }
 
-    /// <summary>Appelé par HubUI bouton "Annuler" sur le panel véhicule.</summary>
     public void AnnulerLocationVehicule()
     {
         _vehiculeSelectionne  = null;
@@ -135,18 +123,12 @@ public class HubManager : MonoBehaviour
     }
 
     // ================================================================
-    // PROPRIÉTÉS PUBLIQUES
+    // PROPRIÉTÉS
     // ================================================================
 
-    public MissionDef  MissionSelectionnee  => _missionSelectionnee;
-    public VehiculeDef VehiculeSelectionne  => _vehiculeSelectionne;
-    public float       PrixLocation         => _prixLocationVehicule;
-    public bool        MissionChoisie       => _missionSelectionnee != null;
-    public bool        VehiculeChoisi       => _vehiculeSelectionne != null;
-
-    // ================================================================
-    // UTILITAIRES — appelés par HubUI
-    // ================================================================
+    public MissionDef  MissionSelectionnee => _missionSelectionnee;
+    public VehiculeDef VehiculeSelectionne => _vehiculeSelectionne;
+    public bool        MissionChoisie      => _missionSelectionnee != null;
 
     public void MettreAJourAffichageArgent()
         => _hubUI?.MettreAJourArgent(GameManager.Instance?.Argent ?? 0f);

@@ -87,7 +87,9 @@ public class HubVehicule : MonoBehaviour, IInteractable
     public bool CanInteract(GameObject interacteur) => _def != null;
 
     public void Interact(GameObject interacteur)
-    {
+    {   
+        Debug.Log($"[HubVehicule] Interact appelé — HubManager: {HubManager.Instance != null}");
+        Debug.Log($"[HubVehicule] _def: {_def != null} — _disponible: {_disponible}");
         if (_def == null) return;
 
         if (!_disponible)
