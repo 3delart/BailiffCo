@@ -145,6 +145,7 @@ GameObject:
   - component: {fileID: 2622782023308685476}
   - component: {fileID: 595625651677034859}
   - component: {fileID: 5822410454411463896}
+  - component: {fileID: 1839265925397076853}
   m_Layer: 5
   m_Name: Raw_Allonger
   m_TagString: Untagged
@@ -211,6 +212,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1839265925397076853
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 213218292490475652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 7
+  _nomAffiche: Allonger
+  _labelAction: {fileID: 8424463100863179153}
+  _boutonTouche: {fileID: 5169551631292905300}
+  _texteTouche: {fileID: 6132844083364130190}
 --- !u!1 &257850192116275534
 GameObject:
   m_ObjectHideFlags: 0
@@ -477,6 +495,7 @@ GameObject:
   - component: {fileID: 3320368100047332735}
   - component: {fileID: 2830029664533006695}
   - component: {fileID: 6259870193392002751}
+  - component: {fileID: 158532410042754566}
   m_Layer: 5
   m_Name: Raw_Gauche
   m_TagString: Untagged
@@ -543,6 +562,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &158532410042754566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 326715975836756099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 2
+  _nomAffiche: Gauche
+  _labelAction: {fileID: 4795919246506887093}
+  _boutonTouche: {fileID: 9102067238823205698}
+  _texteTouche: {fileID: 8343266567041232407}
 --- !u!1 &340740437930596206
 GameObject:
   m_ObjectHideFlags: 0
@@ -631,6 +667,7 @@ GameObject:
   - component: {fileID: 9068302775562775932}
   - component: {fileID: 6324925942958524287}
   - component: {fileID: 7598920607556495895}
+  - component: {fileID: 2618218219674908459}
   m_Layer: 5
   m_Name: Raw_Sauter
   m_TagString: Untagged
@@ -697,6 +734,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &2618218219674908459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 353760082843426033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 8
+  _nomAffiche: Sauter
+  _labelAction: {fileID: 4215929482206564425}
+  _boutonTouche: {fileID: 7766378465820977908}
+  _texteTouche: {fileID: 5883297510313732635}
 --- !u!1 &375047978652916944
 GameObject:
   m_ObjectHideFlags: 0
@@ -1371,7 +1425,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.000024996}
+  m_AnchoredPosition: {x: 0, y: 0.0004960962}
   m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &717564971625827870
@@ -1519,6 +1573,7 @@ GameObject:
   - component: {fileID: 4355014831849071346}
   - component: {fileID: 1916308892949433383}
   - component: {fileID: 4654358094571048084}
+  - component: {fileID: 4201425173056075455}
   m_Layer: 5
   m_Name: Raw_Accroupir
   m_TagString: Untagged
@@ -1585,6 +1640,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4201425173056075455
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 733917079870098873}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 6
+  _nomAffiche: Accroupir
+  _labelAction: {fileID: 1569572633279086254}
+  _boutonTouche: {fileID: 7342422983826202774}
+  _texteTouche: {fileID: 8490071190945238471}
 --- !u!1 &785681693831409667
 GameObject:
   m_ObjectHideFlags: 0
@@ -1725,7 +1797,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Sprint : '
+  m_text: Sprint
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2642,7 +2714,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 6068754349369422064}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.99998605
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2733,6 +2805,7 @@ GameObject:
   - component: {fileID: 2841385183717626259}
   - component: {fileID: 8572125442659309331}
   - component: {fileID: 1869343658778604547}
+  - component: {fileID: 6654965259239192335}
   m_Layer: 5
   m_Name: Raw_Sprint
   m_TagString: Untagged
@@ -2799,6 +2872,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6654965259239192335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1304553960874129254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 5
+  _nomAffiche: Sprint
+  _labelAction: {fileID: 6963516568566321916}
+  _boutonTouche: {fileID: 5667434656528138101}
+  _texteTouche: {fileID: 2805816713989664561}
 --- !u!1 &1360838841255873312
 GameObject:
   m_ObjectHideFlags: 0
@@ -2936,6 +3026,7 @@ GameObject:
   - component: {fileID: 8248478423315758090}
   - component: {fileID: 3245484467611347949}
   - component: {fileID: 2384376292865227870}
+  - component: {fileID: 3041189169440810853}
   m_Layer: 5
   m_Name: Raw_Pause
   m_TagString: Untagged
@@ -3002,6 +3093,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &3041189169440810853
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1362639674872791803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 10
+  _nomAffiche: Pause
+  _labelAction: {fileID: 4616618522619609696}
+  _boutonTouche: {fileID: 2933106434455738191}
+  _texteTouche: {fileID: 7922133582704682235}
 --- !u!1 &1374205147729934136
 GameObject:
   m_ObjectHideFlags: 0
@@ -5088,7 +5196,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Allonger : '
+  m_text: Allonger
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5377,6 +5485,7 @@ GameObject:
   - component: {fileID: 3850689206313984614}
   - component: {fileID: 1972459158204196168}
   - component: {fileID: 6113468698563783178}
+  - component: {fileID: 8256167170085874492}
   m_Layer: 5
   m_Name: Raw_Interagir
   m_TagString: Untagged
@@ -5443,6 +5552,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8256167170085874492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2394237473201940411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 4
+  _nomAffiche: Interagir
+  _labelAction: {fileID: 3400465731143631283}
+  _boutonTouche: {fileID: 3683907717952868409}
+  _texteTouche: {fileID: 2106494583763079674}
 --- !u!1 &2398298682269006828
 GameObject:
   m_ObjectHideFlags: 0
@@ -7257,6 +7383,7 @@ GameObject:
   - component: {fileID: 9067627262007901387}
   - component: {fileID: 1470299279856241814}
   - component: {fileID: 8732916701896859697}
+  - component: {fileID: 6805113809619771812}
   m_Layer: 5
   m_Name: Raw_Inventaire
   m_TagString: Untagged
@@ -7323,6 +7450,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6805113809619771812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2926763283728906596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 9
+  _nomAffiche: Inventaire
+  _labelAction: {fileID: 90080023044826446}
+  _boutonTouche: {fileID: 3887183826105264976}
+  _texteTouche: {fileID: 5194169303448273320}
 --- !u!1 &3112020685120262205
 GameObject:
   m_ObjectHideFlags: 0
@@ -8074,6 +8218,7 @@ GameObject:
   - component: {fileID: 8955884330047229832}
   - component: {fileID: 1429475703370275382}
   - component: {fileID: 3106748561388303935}
+  - component: {fileID: 8468872458000941179}
   m_Layer: 5
   m_Name: Raw_Poser
   m_TagString: Untagged
@@ -8140,6 +8285,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8468872458000941179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3564011774792518708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 11
+  _nomAffiche: Poser
+  _labelAction: {fileID: 5710051418501072878}
+  _boutonTouche: {fileID: 5132926370485812887}
+  _texteTouche: {fileID: 4885168737518247664}
 --- !u!1 &3661440977609597334
 GameObject:
   m_ObjectHideFlags: 0
@@ -10188,7 +10350,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Gauche : '
+  m_text: Gauche
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -11859,6 +12021,7 @@ GameObject:
   - component: {fileID: 7465038273134771248}
   - component: {fileID: 1616541007237327346}
   - component: {fileID: 1993446068477632218}
+  - component: {fileID: 7779626870915026707}
   m_Layer: 5
   m_Name: Raw_Droite
   m_TagString: Untagged
@@ -11925,6 +12088,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &7779626870915026707
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5371268116771753747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 3
+  _nomAffiche: Droite
+  _labelAction: {fileID: 2333725317983151555}
+  _boutonTouche: {fileID: 3480174984035055234}
+  _texteTouche: {fileID: 5873488429708822558}
 --- !u!1 &5433437439163533965
 GameObject:
   m_ObjectHideFlags: 0
@@ -12631,6 +12811,7 @@ GameObject:
   - component: {fileID: 2035083385779819669}
   - component: {fileID: 1322306518528559370}
   - component: {fileID: 4452583144702868439}
+  - component: {fileID: 8998453611321104975}
   m_Layer: 5
   m_Name: Raw_Avancer
   m_TagString: Untagged
@@ -12697,6 +12878,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8998453611321104975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5663469778645576535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 0
+  _nomAffiche: Avancer
+  _labelAction: {fileID: 6079251610566045019}
+  _boutonTouche: {fileID: 3666115705775102088}
+  _texteTouche: {fileID: 2825461072169475579}
 --- !u!1 &5736215191206594761
 GameObject:
   m_ObjectHideFlags: 0
@@ -14187,7 +14385,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Droite : '
+  m_text: Droite
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -15202,6 +15400,7 @@ GameObject:
   - component: {fileID: 1086626477354197479}
   - component: {fileID: 6932300993928249451}
   - component: {fileID: 5142785599204355412}
+  - component: {fileID: 8228566732025754678}
   m_Layer: 5
   m_Name: Raw_Jetter
   m_TagString: Untagged
@@ -15268,6 +15467,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8228566732025754678
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7139396411084725981}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 12
+  _nomAffiche: Jetter
+  _labelAction: {fileID: 3658252763901368032}
+  _boutonTouche: {fileID: 364728717666343944}
+  _texteTouche: {fileID: 7163369256175560199}
 --- !u!1 &7175343984349034801
 GameObject:
   m_ObjectHideFlags: 0
@@ -16123,6 +16339,7 @@ GameObject:
   - component: {fileID: 3986897672986765723}
   - component: {fileID: 6776391163215966522}
   - component: {fileID: 4298233472332655503}
+  - component: {fileID: 1055859672293671116}
   m_Layer: 5
   m_Name: Raw_Reculer
   m_TagString: Untagged
@@ -16189,6 +16406,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1055859672293671116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7505975780084162225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217be9dd9c4a6b84a875255306a959a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _action: 1
+  _nomAffiche: Reculer
+  _labelAction: {fileID: 5902700068554176145}
+  _boutonTouche: {fileID: 3186220546665253199}
+  _texteTouche: {fileID: 1731790368112609645}
 --- !u!1 &7562221705681387674
 GameObject:
   m_ObjectHideFlags: 0
@@ -16594,7 +16828,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Interagir : '
+  m_text: Interagir
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -18480,7 +18714,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Reculer : '
+  m_text: Reculer
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -19518,7 +19752,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Jetter : '
+  m_text: Jetter
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

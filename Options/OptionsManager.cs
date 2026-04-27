@@ -35,7 +35,12 @@ public class OptionsManager : MonoBehaviour
         // Pas de DontDestroyOnLoad ici — GameManager s'en charge pour le GO parent
 
         _data = OptionsData.Charger();
-        AppliquerTout();
+        // On n'applique QUE l'audio en Awake.
+        // La vidéo (SetQualityLevel, résolution) est différée à Start :
+        // _resolutions n'est pas encore peuplé, et appliquer SetQualityLevel
+        // trop tôt force Unity à recharger les assets (matériaux/textures),
+        // ce qui peut faire paraître les données ScriptableObject comme perdues.
+        AppliquerAudio();
     }
 
     // ================================================================
@@ -70,6 +75,10 @@ public class OptionsManager : MonoBehaviour
         {
             _data.IndexResolution = _resolutions.Length - 1;
         }
+
+        // Maintenant que _resolutions est prêt, on peut appliquer la vidéo
+        // sans risquer de forcer un rechargement d'assets prématuré.
+        AppliquerVideo();
     }
 
     // ================================================================

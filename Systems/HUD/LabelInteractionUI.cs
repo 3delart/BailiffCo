@@ -3,13 +3,15 @@
 // Affiche le label d'interaction contextuel.
 // Le panel reste TOUJOURS actif — on vide le texte quand
 // il n'y a rien à afficher.
+// La touche affichee est toujours lue depuis OptionsManager
+// pour refleter les rebinds du joueur.
 // ============================================================
 using TMPro;
 using UnityEngine;
 
 public class LabelInteractionUI : MonoBehaviour
 {
-    [Header("Références")]
+    [Header("References")]
     [SerializeField] private TextMeshProUGUI _txtTouche;
     [SerializeField] private TextMeshProUGUI _txtAction;
 
@@ -32,7 +34,6 @@ public class LabelInteractionUI : MonoBehaviour
 
         if (string.IsNullOrEmpty(label))
         {
-            // Vide les textes — panel reste visible mais vide
             if (_txtTouche != null) _txtTouche.text = "";
             if (_txtAction != null) _txtAction.text = "";
             return;
@@ -43,24 +44,37 @@ public class LabelInteractionUI : MonoBehaviour
 
     private void ParseEtAfficher(string label)
     {
+        // Touche reelle depuis OptionsManager (tient compte des rebinds)
+        string toucheReelle = GetToucheInteragir();
+
         int debut = label.IndexOf('[');
         int fin   = label.IndexOf(']');
 
         if (debut >= 0 && fin > debut)
         {
-            string touche = label.Substring(debut + 1, fin - debut - 1);
+            // Le label contient [X] — on remplace X par la vraie touche rebindee
             string action = label.Substring(fin + 1).Trim();
 
             if (action.StartsWith("—") || action.StartsWith("-"))
                 action = action.Substring(1).Trim();
 
-            if (_txtTouche != null) _txtTouche.text = touche;
+            if (_txtTouche != null) _txtTouche.text = toucheReelle;
             if (_txtAction != null) _txtAction.text = action;
         }
         else
         {
-            if (_txtTouche != null) _txtTouche.text = "E";
+            // Pas de [X] dans le label — affiche la vraie touche quand meme
+            if (_txtTouche != null) _txtTouche.text = toucheReelle;
             if (_txtAction != null) _txtAction.text = label;
         }
+    }
+
+    private string GetToucheInteragir()
+    {
+        if (OptionsManager.Instance == null)
+            return "E"; // fallback si OptionsManager absent
+
+        KeyCode kc = OptionsManager.Instance.GetTouche(ActionJeu.Interagir);
+        return KeyRebindUI.FormatKeyCode(kc);
     }
 }

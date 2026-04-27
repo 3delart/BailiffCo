@@ -39,6 +39,8 @@ public class OptionsData
     public int ToucheSaut           = (int)KeyCode.Space;
     public int ToucheInventaire     = (int)KeyCode.Tab;
     public int TouchePause          = (int)KeyCode.Escape;
+    public int TouchePoser          = (int)KeyCode.Mouse0;
+    public int ToucheJetter         = (int)KeyCode.Mouse1;
 
     // ================================================================
     // PERSISTANCE JSON
@@ -98,6 +100,8 @@ public class OptionsData
         ToucheSaut        = d.ToucheSaut;
         ToucheInventaire  = d.ToucheInventaire;
         TouchePause       = d.TouchePause;
+        TouchePoser       = d.TouchePoser;
+        ToucheJetter      = d.ToucheJetter;
     }
 
     // ================================================================
@@ -117,6 +121,8 @@ public class OptionsData
         ActionJeu.Saut       => (KeyCode)ToucheSaut,
         ActionJeu.Inventaire => (KeyCode)ToucheInventaire,
         ActionJeu.Pause      => (KeyCode)TouchePause,
+        ActionJeu.Poser      => (KeyCode)TouchePoser,
+        ActionJeu.Jetter     => (KeyCode)ToucheJetter,
         _                    => KeyCode.None
     };
 
@@ -135,6 +141,8 @@ public class OptionsData
             case ActionJeu.Saut:       ToucheSaut       = (int)key; break;
             case ActionJeu.Inventaire: ToucheInventaire = (int)key; break;
             case ActionJeu.Pause:      TouchePause      = (int)key; break;
+            case ActionJeu.Poser:      TouchePoser      = (int)key; break;
+            case ActionJeu.Jetter:     ToucheJetter     = (int)key; break;
         }
     }
 }
@@ -154,5 +162,7 @@ public enum ActionJeu
     Allonge,
     Saut,
     Inventaire,
-    Pause
+    Pause,
+    Poser,
+    Jetter
 }

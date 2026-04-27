@@ -4,7 +4,7 @@
 // → capture → sauvegarde + rafraîchit toutes les lignes.
 // Support AZERTY : affichage des noms localisés.
 //
-// HIÉRARCHIE (prefab KeyRebindRow) :
+// HIERARCHIE (prefab KeyRebindRow) :
 //   KeyRebindRow (ce script)
 //   ├── LabelAction   TMP  → _labelAction   (ex: "Interagir")
 //   └── BoutonTouche  Button → _boutonTouche
@@ -17,17 +17,21 @@ using UnityEngine.UI;
 
 public class KeyRebindUI : MonoBehaviour
 {
-    [Header("Action associée")]
+    [Header("Action associee")]
     [SerializeField] private ActionJeu _action;
     [SerializeField] private string    _nomAffiche = "Action";
 
-    [Header("Références UI")]
+    [Header("References UI")]
     [SerializeField] private TextMeshProUGUI _labelAction;
     [SerializeField] private Button          _boutonTouche;
     [SerializeField] private TextMeshProUGUI _texteTouche;
 
-    // Overlay global (singleton dans la scène, cherché automatiquement)
-    private static RebindOverlay _overlay;
+    // Donnees cibles du rebind — injectees par OptionsUI.SetDataSource()
+    // pour ecrire dans _dataTemp plutot que dans OptionsManager.Data directement.
+    private OptionsData _dataSource;
+
+    // Overlay global — NON static : evite les refs stale entre scenes
+    private RebindOverlay _overlay;
 
     private OptionsUI _optionsUI;
 
@@ -38,14 +42,23 @@ public class KeyRebindUI : MonoBehaviour
     private void Awake()
     {
         _optionsUI = GetComponentInParent<OptionsUI>(includeInactive: true);
-
-        if (_labelAction != null)
-            _labelAction.text = _nomAffiche;
-
         _boutonTouche?.onClick.AddListener(CommencerRebind);
-
         MettreAJourAffichage();
     }
+
+    private void Start()
+    {
+        if (_labelAction != null)
+            _labelAction.text = _nomAffiche;
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (_labelAction != null)
+            _labelAction.text = _nomAffiche;
+    }
+#endif
 
     private void OnEnable() => MettreAJourAffichage();
 
@@ -55,18 +68,18 @@ public class KeyRebindUI : MonoBehaviour
 
     public void CommencerRebind()
     {
-        // Cherche ou crée l'overlay
-        if (_overlay == null)
+        // Re-valide la reference a chaque clic.
+        if (_overlay == null || !_overlay)
             _overlay = FindObjectOfType<RebindOverlay>(includeInactive: true);
 
         if (_overlay == null)
         {
-            Debug.LogWarning("[KeyRebindUI] RebindOverlay introuvable dans la scène !");
-            // Fallback : capture directe sans overlay
+            Debug.LogWarning("[KeyRebindUI] RebindOverlay introuvable ! Verifiez qu il est dans la scene.");
             StartCoroutine(CaptureDirecte());
             return;
         }
 
+        Debug.Log($"[KeyRebindUI] Overlay trouve — ouverture pour {_nomAffiche}");
         _overlay.Afficher(_nomAffiche, OnToucheCapturee);
     }
 
@@ -99,11 +112,12 @@ public class KeyRebindUI : MonoBehaviour
 
     private void OnToucheCapturee(KeyCode kc)
     {
-        if (OptionsManager.Instance == null) return;
+        // Priorite : _dataSource (dataTemp de OptionsUI) pour ne pas ecraser
+        // les autres changements en attente. Fallback sur OptionsManager.Data.
+        OptionsData data = _dataSource ?? OptionsManager.Instance?.Data;
+        if (data == null) return;
 
-        OptionsData data = OptionsManager.Instance.Data;
-
-        // Résolution des conflits par échange
+        // Resolution des conflits par echange
         foreach (ActionJeu action in System.Enum.GetValues(typeof(ActionJeu)))
         {
             if (action == _action) continue;
@@ -125,8 +139,13 @@ public class KeyRebindUI : MonoBehaviour
 
     public void MettreAJourAffichage()
     {
-        if (OptionsManager.Instance == null || _texteTouche == null) return;
-        KeyCode kc = OptionsManager.Instance.Data.GetTouche(_action);
+        if (_texteTouche == null) return;
+
+        // Lit depuis _dataSource si disponible, sinon OptionsManager
+        OptionsData data = _dataSource ?? OptionsManager.Instance?.Data;
+        if (data == null) return;
+
+        KeyCode kc = data.GetTouche(_action);
         _texteTouche.text = FormatKeyCode(kc);
     }
 
@@ -141,7 +160,7 @@ public class KeyRebindUI : MonoBehaviour
         KeyCode.Q           => "A",
         KeyCode.W           => "Z",
         KeyCode.Z           => "W",
-        KeyCode.M           => "M",    // reste M
+        KeyCode.M           => "M",
         KeyCode.Semicolon   => "M",
 
         // Modificateurs
@@ -153,7 +172,7 @@ public class KeyRebindUI : MonoBehaviour
         KeyCode.RightAlt    => "AltGr",
 
         // Navigation
-        KeyCode.Return      => "Entrée",
+        KeyCode.Return      => "Entree",
         KeyCode.Backspace   => "Retour",
         KeyCode.Delete      => "Suppr",
         KeyCode.UpArrow     => "↑",
@@ -161,12 +180,12 @@ public class KeyRebindUI : MonoBehaviour
         KeyCode.LeftArrow   => "←",
         KeyCode.RightArrow  => "→",
         KeyCode.Space       => "Espace",
-        KeyCode.Escape      => "Échap",
+        KeyCode.Escape      => "Echap",
         KeyCode.Tab         => "Tab",
         KeyCode.CapsLock    => "Verr. Maj",
         KeyCode.PageUp      => "Pg↑",
         KeyCode.PageDown    => "Pg↓",
-        KeyCode.Home        => "Début",
+        KeyCode.Home        => "Debut",
         KeyCode.End         => "Fin",
 
         // Clics souris
@@ -184,7 +203,6 @@ public class KeyRebindUI : MonoBehaviour
     public static bool EstToucheValide(KeyCode kc)
     {
         if (kc == KeyCode.None) return false;
-        // Exclut joystick
         if ((int)kc >= (int)KeyCode.JoystickButton0) return false;
         return true;
     }
@@ -194,6 +212,9 @@ public class KeyRebindUI : MonoBehaviour
     // ================================================================
 
     public ActionJeu Action => _action;
+
+    /// <summary>Injecte la source de donnees (dataTemp de OptionsUI).</summary>
+    public void SetDataSource(OptionsData data) => _dataSource = data;
 
     public void AnnulerRebind()
     {

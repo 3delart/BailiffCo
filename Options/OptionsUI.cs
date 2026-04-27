@@ -152,6 +152,7 @@ public class OptionsUI : MonoBehaviour
             _initialise = true;
         }
 
+        InjecterDataSource();
         ChargerValeursUI();
         OuvrirOnglet(0);
 
@@ -237,6 +238,10 @@ public class OptionsUI : MonoBehaviour
         // Trouve tous les KeyRebindUI dans le conteneur
         if (_conteneurTouches != null)
             _rebindRows = _conteneurTouches.GetComponentsInChildren<KeyRebindUI>(includeInactive: true);
+
+        // Injecte la dataTemp dans chaque row pour que les rebinds
+        // écrivent dans la copie de travail, pas dans OptionsManager.Data.
+        InjecterDataSource();
     }
 
     // ================================================================
@@ -336,17 +341,26 @@ public class OptionsUI : MonoBehaviour
             row.MettreAJourAffichage();
     }
 
+    private void InjecterDataSource()
+    {
+        if (_rebindRows == null) return;
+        foreach (var row in _rebindRows)
+            row.SetDataSource(_dataTemp);
+    }
+
     // ================================================================
     // BAS DE PAGE
     // ================================================================
 
     private void OnAppliquer()
     {
-        // Copie la dataTemp dans le manager et sauvegarde
+        // Copie la dataTemp dans le manager et sauvegarde.
+        // NOTE : PAS de Reset() ici — FromJsonOverwrite écrase tout de toute façon,
+        // et Reset() avant créait des états intermédiaires indéfinis.
         if (OptionsManager.Instance != null)
         {
-            OptionsManager.Instance.Data.Reset(); // nettoie
-            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(_dataTemp),
+            JsonUtility.FromJsonOverwrite(
+                JsonUtility.ToJson(_dataTemp),
                 OptionsManager.Instance.Data);
             OptionsManager.Instance.Sauvegarder();
         }
