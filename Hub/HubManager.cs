@@ -29,6 +29,9 @@ public class HubManager : MonoBehaviour
     [Tooltip("Glisse ici une MissionDef pour tester sans passer par le Chef PNJ.")]
     [SerializeField] private MissionDef _missionTest;
 
+    [Tooltip("Argent injecté au démarrage pour les tests. 0 = désactivé.")]
+    [SerializeField] private float _argentTest = 0f;
+
     // ================================================================
     // ÉTAT SESSION
     // ================================================================
@@ -45,6 +48,13 @@ public class HubManager : MonoBehaviour
     {
         if (_hubUI == null)
             _hubUI = FindObjectOfType<HubUI>();
+
+        // Injecte de l'argent de test si renseigné
+        if (_argentTest > 0f && GameManager.Instance != null)
+        {
+            GameManager.Instance.Crediter(_argentTest);
+            Debug.Log($"[HubManager] 💰 Argent test injecté : {_argentTest:N0} €");
+        }
 
         _hubUI?.MettreAJourArgent(GameManager.Instance?.Argent ?? 0f);
 
@@ -119,7 +129,7 @@ public class HubManager : MonoBehaviour
     {
         _vehiculeSelectionne  = null;
         _prixLocationVehicule = 0f;
-        _hubUI?.FermerPanelVehicule();
+        _hubUI?.FermerPanelVehiculeEtRevenirGarage();
     }
 
     // ================================================================

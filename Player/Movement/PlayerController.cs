@@ -22,7 +22,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Caméra")]
     [SerializeField] private Transform _camera;
-    [SerializeField] private float     _sensibiliteSourisFallback = 2f; // utilisé si OptionsManager absent
+    [SerializeField] private float     _sensibiliteSourisFallback = 2f;
     [SerializeField] private float     _clampVertical             = 60f;
     [SerializeField] private float     _hauteurCameraNormale      = 1.8f;
     [SerializeField] private float     _hauteurCameraAccroupi     = 1.25f;
@@ -40,6 +40,7 @@ public class PlayerController : MonoBehaviour
     private PlayerInteractor    _interactor;
     private PauseMenu           _pauseMenu;
     private InventaireWheel     _inventaireWheel;
+    private HubUI               _hubUI;
 
     private Vector3 _velociteXZ    = Vector3.zero;
     private float   _velociteY     = 0f;
@@ -69,6 +70,19 @@ public class PlayerController : MonoBehaviour
             : false;
 
     // ================================================================
+    // PROPRIÉTÉ CENTRALE — UI bloquante ouverte ?
+    // ================================================================
+
+    /// <summary>
+    /// Retourne true si une UI bloquante est ouverte
+    /// (HubUI, InventaireWheel, etc.).
+    /// Centralise le check pour la caméra ET le mouvement.
+    /// </summary>
+    private bool UIBloquante =>
+        (_hubUI            != null && _hubUI.UnPanneauEstOuvert)   ||
+        (_inventaireWheel  != null && _inventaireWheel.EstOuverte);
+
+    // ================================================================
     // LIFECYCLE
     // ================================================================
 
@@ -79,12 +93,16 @@ public class PlayerController : MonoBehaviour
         _interactor      = GetComponent<PlayerInteractor>();
         _pauseMenu       = FindObjectOfType<PauseMenu>(includeInactive: true);
         _inventaireWheel = FindObjectOfType<InventaireWheel>(includeInactive: true);
+        _hubUI           = FindObjectOfType<HubUI>(includeInactive: true);
         Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void Update()
     {
         if (_pauseMenu != null && _pauseMenu.EstOuvert) return;
+
+        // Synchronise le curseur selon l'état de l'UI
+        GererCurseur();
 
         DetecterSol();
         GererGravite();
@@ -94,6 +112,24 @@ public class PlayerController : MonoBehaviour
         GererSaut();
         AdapterHauteur();
         AdapterCamera();
+    }
+
+    // ================================================================
+    // CURSEUR — verrouillé en jeu, libre sur UI
+    // ================================================================
+
+    private void GererCurseur()
+    {
+        if (UIBloquante)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible   = true;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible   = false;
+        }
     }
 
     // ================================================================
@@ -148,10 +184,9 @@ public class PlayerController : MonoBehaviour
 
     private void GererCamera()
     {
-        // Bloque la caméra si la roue d'inventaire est ouverte
-        if (_inventaireWheel != null && _inventaireWheel.EstOuverte) return;
+        // Bloque la caméra si une UI est ouverte
+        if (UIBloquante) return;
 
-        // Sensibilité depuis OptionsManager ou fallback Inspector
         float sensi = OptionsManager.Instance != null
             ? OptionsManager.Instance.SensibiliteSouris
             : _sensibiliteSourisFallback;
@@ -225,13 +260,13 @@ public class PlayerController : MonoBehaviour
     }
 
     // ================================================================
-    // MOUVEMENT — lit Avancer/Reculer/Gauche/Droite depuis OptionsManager
+    // MOUVEMENT
     // ================================================================
 
     private void GererMouvement()
     {
-        var hubUI = FindObjectOfType<HubUI>();
-        if (hubUI != null && hubUI.UnPanneauEstOuvert) return;
+        // Bloque le mouvement si une UI est ouverte
+        if (UIBloquante) return;
 
         if (_estAuSol)
         {
@@ -245,7 +280,6 @@ public class PlayerController : MonoBehaviour
             float multiMeuble = _interactor != null ? _interactor.MultiplicateurVitesseMeuble : 1f;
             float vitesse     = vitesseBase * multiMeuble;
 
-            // Lecture des touches de déplacement depuis OptionsManager
             float h = 0f;
             float v = 0f;
 
@@ -259,7 +293,6 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                // Fallback axes Unity si OptionsManager absent
                 h = Input.GetAxisRaw("Horizontal");
                 v = Input.GetAxisRaw("Vertical");
             }
